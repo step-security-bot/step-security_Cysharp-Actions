@@ -33,7 +33,7 @@ runs:
       shell: bash
       run: echo "::add-mask::$(echo ${{ env.UNITY_SERIAL }} | sed 's/....$//')XXXX"
     - name: Run Unity build
-      uses: game-ci/unity-builder@81ed299e10d0ca8f55616c5c74505ffce511163c # v4.4.0
+      uses: step-security/unity-builder@release
       with:
         targetPlatform: ${{ inputs.targetPlatform }}
         unityVersion: ${{ inputs.unityVersion }}
