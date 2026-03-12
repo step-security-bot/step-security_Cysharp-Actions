@@ -1,0 +1,62 @@
+name: Test check-metas
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      # Scenario 1: No untracked .meta files should be present initially
+      - uses: ./.github/actions/check-metas
+        id: clean-check
+        with:
+          directory: "testdata/SampleUnityProject"
+          exit-on-error: false
+
+      # Scenario 2: Introduce an untracked .meta file and verify detection
+      - name: Create untracked .meta file
+        run: touch ./testdata/SampleUnityProject/Assets/Scene1.unity.meta
+      - uses: ./.github/actions/check-metas
+        id: dirty-check
+        with:
+          directory: "testdata/SampleUnityProject"
+          exit-on-error: false
+
+      - name: Assert detection results
+        run: |
+          echo "DEBUG: clean-check: ${{ steps.clean-check.outputs.meta-exists }}"
+          echo "DEBUG: dirty-check: ${{ steps.dirty-check.outputs.meta-exists }}"
+
+          echo -n "ASSERT: clean directory reports no untracked .meta files. "
+          if [[ "${{ steps.clean-check.outputs.meta-exists }}" != "true" ]]; then echo "[O PASS]"; else echo "::error::[X FAIL]" && exit 1; fi
+          echo -n "ASSERT: dirty directory reports untracked .meta files. "
+          if [[ "${{ steps.dirty-check.outputs.meta-exists }}" == "true" ]]; then echo "[O PASS]"; else echo "::error::[X FAIL]" && exit 1; fi
+
+      # Scenario 3: Verify exit-on-error causes a step failure
+      - uses: ./.github/actions/check-metas
+        id: fail-check
+        with:
+          directory: "testdata/SampleUnityProject"
+          exit-on-error: true
+        continue-on-error: true
+
+      - name: Assert exit-on-error behaviour
+        if: always()
+        run: |
+          echo "DEBUG: fail-check: ${{ steps.fail-check.outputs.meta-exists }}"
+          echo "DEBUG: outcome: ${{ steps.fail-check.outcome }}"
+
+          echo -n "ASSERT: untracked .meta files detected. "
+          if [[ "${{ steps.fail-check.outputs.meta-exists }}" == "true" ]]; then echo "[O PASS]"; else echo "::error::[X FAIL]" && exit 1; fi
+
+          echo -n "ASSERT: step exited with failure when exit-on-error is true. "
+          if [[ "${{ steps.fail-check.outcome }}" == "failure" ]]; then echo "[O PASS]"; else echo "::error::[X FAIL]" && exit 1; fi

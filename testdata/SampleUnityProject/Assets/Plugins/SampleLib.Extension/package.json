@@ -1,0 +1,21 @@
+{
+  "name": "com.stepsecurity.sample-lib-plugin",
+  "version": "1.4.4-dev",
+  "displayName": "Sample Library Plugin",
+  "description": "Plugin extension for the sample Unity package used in CI testing",
+  "unity": "2019.1",
+  "unityRelease": "0b5",
+  "dependencies": {
+    "com.stepsecurity.sample-lib": "1.0.0"
+ },
+ "keywords": [
+    "sample",
+    "testing",
+    "plugin"
+  ],
+  "author": {
+    "name": "StepSecurity",
+    "email": "test@example.com",
+    "url": "https://www.stepsecurity.io"
+  }
+}

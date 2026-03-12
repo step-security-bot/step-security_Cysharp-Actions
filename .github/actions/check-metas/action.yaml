@@ -1,0 +1,33 @@
+name: Verify Unity meta files
+description: Ensures no untracked Unity .meta files exist in the specified project directory.
+inputs:
+  directory:
+    description: Path to the Unity project folder to scan for untracked .meta files
+    required: true
+  exit-on-error:
+    description: Whether to fail the step when uncommitted .meta files are detected
+    required: false
+    default: "true"
+outputs:
+  meta-exists:
+    description: Set to 'true' when untracked .meta files are found, 'false' otherwise
+    value: ${{ steps.check-meta.outputs.meta-exists }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Scan for untracked .meta files
+      id: check-meta
+      shell: bash
+      run: |
+        if git ls-files --others --exclude-standard -t | grep --regexp='[.]meta$'; then
+          echo "Found untracked .meta files. Please ensure all .meta files are committed."
+          echo "meta-exists=true" | tee -a "$GITHUB_OUTPUT"
+          if [[ "${{inputs.exit-on-error }}" == "true" ]]; then
+            exit 1
+          fi
+        else
+          echo "No untracked .meta files detected."
+          echo "meta-exists=false" | tee -a "$GITHUB_OUTPUT"
+        fi
+      working-directory: ${{ inputs.directory }}
