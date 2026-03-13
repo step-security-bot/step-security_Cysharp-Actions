@@ -76,7 +76,13 @@ runs:
 
     - name: Mask Unity serial number
       shell: bash
-      run: echo "::add-mask::$(echo ${{ env.UNITY_SERIAL }} | sed 's/....$//')XXXX"
+      env:
+        SERIAL: ${{ env.UNITY_SERIAL }}
+      run: |
+        if [ -n "$SERIAL" ] && [ "${#SERIAL}" -ge 4 ]; then
+          echo "::add-mask::${SERIAL}"
+          echo "::add-mask::${SERIAL%????}XXXX"
+        fi
     - name: Run Unity build
       uses: step-security/unity-builder@release
       with:
