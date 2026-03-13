@@ -39,8 +39,8 @@ Scans a Unity project directory for untracked `.meta` files and optionally fails
 **Example**
 
 ```yaml
-- uses: actions/checkout@v4
-- uses: step-security/Cysharp-Actions/.github/actions/check-metas@main
+- uses: actions/checkout@v6
+- uses: step-security/Cysharp-Actions/.github/actions/check-metas@v1
   with:
     directory: ./src/MyUnityProject
 ```
@@ -67,8 +67,8 @@ Wraps [game-ci/unity-builder](https://github.com/game-ci/unity-builder) and auto
 **Example**
 
 ```yaml
-- uses: actions/checkout@v4
-- uses: step-security/Cysharp-Actions/.github/actions/unity-builder@main
+- uses: actions/checkout@v6
+- uses: step-security/Cysharp-Actions/.github/actions/unity-builder@v1
   with:
     projectPath: src/MyProject.Unity
     unityVersion: "2022.3.10f1"
