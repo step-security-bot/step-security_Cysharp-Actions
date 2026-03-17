@@ -84,7 +84,7 @@ runs:
           echo "::add-mask::${SERIAL%????}XXXX"
         fi
     - name: Run Unity build
-      uses: step-security/unity-builder@release
+      uses: step-security/unity-builder@6fab371d549954c228a087213771ff612b77a245 # release
       with:
         targetPlatform: ${{ inputs.targetPlatform }}
         unityVersion: ${{ inputs.unityVersion }}

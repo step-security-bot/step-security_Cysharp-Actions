@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /testdata/SampleUnityProject/Assets/Plugins/SampleLib.Extension
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /testdata/SampleUnityProject/Assets/Plugins/SampleLib
+    schedule:
+      interval: daily
