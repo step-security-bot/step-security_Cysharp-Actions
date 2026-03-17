@@ -1,0 +1,94 @@
+name: Unity Builder
+description: "Composite action that wraps game-ci/unity-builder with serial masking for secure CI builds."
+inputs:
+  targetPlatform:
+    required: true
+    default: ""
+    description: "The Unity build target platform (e.g. StandaloneLinux64, StandaloneWindows64)."
+  unityVersion:
+    required: false
+    default: "auto"
+    description: 'Unity editor version to use. Set to "auto" to detect from ProjectSettings/ProjectVersion.txt.'
+  projectPath:
+    required: true
+    default: ""
+    description: "Relative path from the repository root to the Unity project directory."
+  buildMethod:
+    required: true
+    default: ""
+    description: "Fully-qualified static method (Namespace.Class.Method) invoked to execute the build."
+  customParameters:
+    required: false
+    default: ""
+    description: "Additional command-line arguments forwarded to the Unity build process."
+  versioning:
+    required: false
+    default: "None"
+    description: "Versioning strategy applied during the build (e.g. None, Semantic, Custom)."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Subscription check
+      env:
+        REPO_PRIVATE: ${{ github.event.repository.private }}
+      run: |
+        # validate subscription status
+        UPSTREAM="Cysharp/Actions"
+        ACTION_REPO="${GITHUB_ACTION_REPOSITORY:-}"
+        DOCS_URL="https://docs.stepsecurity.io/actions/stepsecurity-maintained-actions"
+
+        echo ""
+        echo -e "\033[1;36mStepSecurity Maintained Action\033[0m"
+        echo "Secure drop-in replacement for $UPSTREAM"
+        if [ "$REPO_PRIVATE" = "false" ]; then
+          echo -e "\033[32m✓ Free for public repositories\033[0m"
+        fi
+        echo -e "\033[36mLearn more:\033[0m $DOCS_URL"
+        echo ""
+
+        if [ "$REPO_PRIVATE" != "false" ]; then
+          SERVER_URL="${GITHUB_SERVER_URL:-https://github.com}"
+
+          if [ "$SERVER_URL" != "https://github.com" ]; then
+            BODY=$(printf '{"action":"%s","ghes_server":"%s"}' "$ACTION_REPO" "$SERVER_URL")
+          else
+            BODY=$(printf '{"action":"%s"}' "$ACTION_REPO")
+          fi
+
+          API_URL="https://agent.api.stepsecurity.io/v1/github/$GITHUB_REPOSITORY/actions/maintained-actions-subscription"
+
+          RESPONSE=$(curl --max-time 3 -s -w "%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d "$BODY" \
+            "$API_URL" -o /dev/null) && CURL_EXIT_CODE=0 || CURL_EXIT_CODE=$?
+
+          if [ $CURL_EXIT_CODE -ne 0 ]; then
+            echo "Timeout or API not reachable. Continuing to next step."
+          elif [ "$RESPONSE" = "403" ]; then
+            echo -e "::error::\033[1;31mThis action requires a StepSecurity subscription for private repositories.\033[0m"
+            echo -e "::error::\033[31mLearn how to enable a subscription: $DOCS_URL\033[0m"
+            exit 1
+          fi
+        fi
+      shell: bash
+
+    - name: Mask Unity serial number
+      shell: bash
+      env:
+        SERIAL: ${{ env.UNITY_SERIAL }}
+      run: |
+        if [ -n "$SERIAL" ] && [ "${#SERIAL}" -ge 4 ]; then
+          echo "::add-mask::${SERIAL}"
+          echo "::add-mask::${SERIAL%????}XXXX"
+        fi
+    - name: Run Unity build
+      uses: step-security/unity-builder@release
+      with:
+        targetPlatform: ${{ inputs.targetPlatform }}
+        unityVersion: ${{ inputs.unityVersion }}
+        projectPath: ${{ inputs.projectPath }}
+        buildMethod: ${{ inputs.buildMethod }}
+        customParameters: ${{ inputs.customParameters }}
+        versioning: ${{ inputs.versioning }}

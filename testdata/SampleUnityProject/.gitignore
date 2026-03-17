@@ -1,0 +1,20 @@
+# Unity generated directories
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# IDE
+.vs/
+*.csproj
+*.sln
+
+# Unity meta files for generated binaries
+*.pdb.meta
+*.mdb.meta
+
+# Ensure .meta files are tracked
+!*.meta
